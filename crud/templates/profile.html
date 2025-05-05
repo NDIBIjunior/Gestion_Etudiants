@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+{% load static%}
+    {% block content %}
+    
+    
+<div class="animate__animated p-6" :class="[$store.app.animation]">
+      
+    
+    <div class="text-center mt-8">
+        <h1 class="text-4xl font-bold animate__animated animate__fadeInDown" id="animated-title">
+            Gestion des Étudiants
+        </h1>
+        <p class="text-lg text-gray-500 mt-2 animate__animated animate__fadeInUp">
+            Gérez facilement les informations des étudiants.
+        </p>
+    </div>
+
+    <style>
+        @keyframes gradientText {
+            0% {
+                background-position: 0% 50%;
+            }
+            100% {
+                background-position: 100% 50%;
+            }
+        }
+
+        #animated-title {
+            background: linear-gradient(90deg, #ff0000, #0368c7, #0000ff, #ff0000);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientText 10s linear infinite;
+        }
+    </style>
+
+    <!-- Bloc Statistiques globales visible en permanence -->
+    <div id="chartOverallStats" class="my-5"></div>
+    <div x-data="myModalForm">
+        <!-- start main content section -->
+        <div x-data="datatablesComponent">
+
+            <div class="container mx-auto mt-10">
+                <div class="max-w-lg mx-auto bg-white shadow-md rounded-lg p-6">
+                    <div class="text-center"></div>
+                        {% if etudiant.photo %}
+                            <img src="{{ etudiant.photo.url }}" alt="Photo de profil" class="w-32 h-32 rounded-full mx-auto shadow-lg">
+                        {% else %}
+                            <img src="{% static 'assets/images/profile-placeholder.png' %}" alt="Photo de profil" class="w-32 h-32 rounded-full mx-auto shadow-lg">
+                        {% endif %}
+                        <div class="text-center mt-4">
+                            <h2 class="text-2xl font-semibold"> {{ etudiant.nom }} {{ etudiant.prenom }} </h2>
+                            <p class="text-gray-600">ID Étudiant: {{ etudiant.id }} </p>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 text-center">
+                        <h3 class="text-lg font-semibold mb-4">Informations Personnelles</h3>
+                        <ul class="text-gray-700 inline-block text-left">
+                            <li class="mb-2"><strong>Email:</strong> {{ etudiant.email }}</li>
+                            <li><strong>Date de Naissance:</strong> {{ etudiant.date_naissance }}</li>
+                        </ul>
+                    </div>
+
+                    <div class="mt-6 text-center space-x-4">
+                        <button 
+                            type="button" 
+                            class="btn btn-lg btn-outline-primary inline-block px-6 py-3 text-lg"
+                            onclick="window.location.href='{% url 'modifier-etudiant' etudiant.id %}'"
+                        >
+                            Modifier
+                        </button>
+                        <button 
+                            type="button" 
+                            class="btn btn-lg btn-outline-danger inline-block px-6 py-3 text-lg" 
+                            onclick="confirmDelete({{ etudiant.id }})"
+                        >
+                            Supprimer
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+           
+        </div>
+        <!-- end main content section -->
+
+       
+               
+            </div>
+        </div>
+</div>
+
+
+                {% endblock %}
+       
+                {% block extra_js %}
+        <script src="{% static 'assets/js/highlight.min.js' %}"></script>
+        <script src="{% static 'assets/js/alpine-collaspe.min.js' %}"></script>
+        <script src="{% static 'assets/js/alpine-persist.min.js' %}"></script>
+        <script defer src="{% static 'assets/js/alpine-ui.min.js' %}"></script>
+        <script defer src="{% static 'assets/js/alpine-focus.min.js' %}"></script>
+        <script defer src="{% static 'assets/js/alpine.min.js' %}"></script>
+        <script src="{% static 'assets/js/custom.js' %}"></script>
+        <script src="{% static 'assets/js/simple-datatables.js' %}"></script>
+        <script>
+
+            // Fonction de confirmation de suppression
+            function confirmDelete(studentId) {
+                Swal.fire({
+                    title: 'Êtes-vous sûr ?',
+                    text: "Cette action est irréversible !",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#e3342f',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Oui, supprimer !',
+                    cancelButtonText: 'Annuler'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Envoyer la requête POST via fetch
+                        fetch(`/supprimer-etudiant/${studentId}/`, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': '{{ csrf_token }}',
+                                'Content-Type': 'application/json'
+                            }
+                        }).then(response => {
+                            if (response.ok) {
+                                Swal.fire('Supprimé !', "L'étudiant a été supprimé.", 'success')
+                                    .then(() => window.location.reload());
+                            }
+                        });
+                    }
+                });
+            }
+
+            document.addEventListener('alpine:init', () => {
+                // main section
+                Alpine.data('scrollToTop', () => ({
+                    showTopButton: false,
+                    init() {
+                        window.onscroll = () => {
+                            this.scrollFunction();
+                        };
+                    },
+
+                    scrollFunction() {
+                        if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 50) {
+                            this.showTopButton = true;
+                        } else {
+                            this.showTopButton = false;
+                        }
+                    },
+
+                    goToTop() {
+                        document.body.scrollTop = 0;
+                        document.documentElement.scrollTop = 0;
+                    },
+                }));
+
+                // theme customization
+                Alpine.data('customizer', () => ({
+                    showCustomizer: false,
+                }));
+
+                // sidebar section
+                Alpine.data('sidebar', () => ({
+                    init() {
+                        const selector = document.querySelector('.sidebar ul a[href="' + window.location.pathname + '"]');
+                        if (selector) {
+                            selector.classList.add('active');
+                            const ul = selector.closest('ul.sub-menu');
+                            if (ul) {
+                                let ele = ul.closest('li.menu').querySelectorAll('.nav-link');
+                                if (ele) {
+                                    ele = ele[0];
+                                    setTimeout(() => {
+                                        ele.click();
+                                    });
+                                }
+                            }
+                        }
+                    },
+                }));
+
+                // header section
+                Alpine.data('header', () => ({
+                    init() {
+                        const selector = document.querySelector('ul.horizontal-menu a[href="' + window.location.pathname + '"]');
+                        if (selector) {
+                            selector.classList.add('active');
+                            const ul = selector.closest('ul.sub-menu');
+                            if (ul) {
+                                let ele = ul.closest('li.menu').querySelectorAll('.nav-link');
+                                if (ele) {
+                                    ele = ele[0];
+                                    setTimeout(() => {
+                                        ele.classList.add('active');
+                                    });
+                                }
+                            }
+                        }
+                    },
+                    
+
+                    removeNotification(value) {
+                        this.notifications = this.notifications.filter((d) => d.id !== value);
+                    },
+
+                    removeMessage(value) {
+                        this.messages = this.messages.filter((d) => d.id !== value);
+                    },
+                }));
+        
+            });
+
+            document.addEventListener('click', function(e) {
+                        // Bouton supprimer
+                        const delBtn = e.target.closest('.btn-danger');
+                        if (delBtn && delBtn.dataset.studentId) {
+                            const studentId = delBtn.dataset.studentId;
+                            
+                            deleteStudent(studentId);
+                        }
+
+                        // Bouton view
+                        const viewBtn = e.target.closest('.btn-success');
+                        if (viewBtn && viewBtn.dataset.viewId) {
+                            const studentId = viewBtn.dataset.viewId;
+                            viewDetails(studentId);
+                        }
+                });     
+        </script>
+
+
+        
+            
+    </body>
+</html>
+
+{% endblock %}

@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+{% load static%}
+    {% block content %}
+    
+    
+<div class="animate__animated p-6" :class="[$store.app.animation]">
+      
+    
+    <div class="text-center mt-8">
+        <h1 class="text-4xl font-bold animate__animated animate__fadeInDown" id="animated-title">
+            Gestion des Étudiants
+        </h1>
+        <p class="text-lg text-gray-500 mt-2 animate__animated animate__fadeInUp">
+            Gérez facilement les informations des étudiants.
+        </p>
+    </div>
+
+    <style>
+        @keyframes gradientText {
+            0% {
+                background-position: 0% 50%;
+            }
+            100% {
+                background-position: 100% 50%;
+            }
+        }
+
+        #animated-title {
+            background: linear-gradient(90deg, #ff0000, #0368c7, #0000ff, #ff0000);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientText 10s linear infinite;
+        }
+    </style>
+
+    <!-- Bloc Statistiques globales visible en permanence -->
+    <div id="chartOverallStats" class="my-5"></div>
+    <div x-data="myModalForm">
+        <!-- start main content section -->
+        <div x-data="datatablesComponent">
+
+            <div class="container mx-auto mt-10">
+                <div class="max-w-lg mx-auto bg-white shadow-md rounded-lg p-6">
+                    <h2 class="text-2xl font-bold text-center mb-4">Modifier un Étudiant</h2>
+                    <form action="{% url 'modifier-etudiant' etudiant.id %}" method="POST" enctype="multipart/form-data">
+                         {% csrf_token %}
+                        <div class="mb-4"></div>
+                            <label for="{{ form.nom.id_for_label }}" class="block text-gray-700 font-medium mb-2">Nom</label>
+                            {{ form.nom }}
+                            {% if form.nom.errors %}
+                                <div class="mt-1 text-red-500 text-sm">{{ form.nom.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.prenom.id_for_label }}" class="block text-gray-700 font-medium mb-2">Prénom</label>
+                            {{ form.prenom }}
+                            {% if form.prenom.errors %}
+                                <div class="mt-1 text-red-500 text-sm">{{ form.prenom.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.email.id_for_label }}" class="block text-gray-700 font-medium mb-2">Email</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="mt-1 text-red-500 text-sm">{{ form.email.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.date_naissance.id_for_label }}" class="block text-gray-700 font-medium mb-2">Date de Naissance</label>
+                            <div class="relative">
+                                <input type="date" id="{{ form.date_naissance.id_for_label }}" name="{{ form.date_naissance.html_name }}" value="{{ etudiant.date_naissance|date:'Y-m-d' }}" class="form-input block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                            </div>
+                            {% if form.date_naissance.errors %}
+                                <div class="mt-1 text-red-500 text-sm">{{ form.date_naissance.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.filiere.id_for_label }}" class="block text-gray-700 font-medium mb-2">Filière</label>
+                            {{ form.filière }}
+                            {% if form.filière.errors %}
+                                <div class="mt-1 text-red-500 text-sm">{{ form.filière.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.photo.id_for_label }}" class="block text-gray-700 font-medium mb-2">Photo</label>
+                            <div class="relative">
+                                {{ form.photo }}
+                                <span class="block mt-1 text-sm text-gray-500">Formats acceptés : JPEG, PNG</span>
+                            </div>
+                            {% if form.photo.errors %}
+                                <div class="mt-1 text-red-500 text-sm">{{ form.photo.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-gray-700 font-medium mb-2">Photo actuelle</label>
+                            {% if etudiant.photo %}
+                                <img src="{{ etudiant.photo.url }}" alt="Photo actuelle" class="w-32 h-32 object-cover rounded-md">
+                            {% else %}
+                                <p class="text-gray-500">Pas de photo disponible</p>
+                            {% endif %}
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">Modifier</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+           
+        </div>
+        </div>
+        <!-- end main content section -->
+
+       
+               
+            </div>
+        </div>
+</div>
+
+
+                {% endblock %}
+       
+                {% block extra_js %}
+        <script src="{% static 'assets/js/highlight.min.js' %}"></script>
+        <script src="{% static 'assets/js/alpine-collaspe.min.js' %}"></script>
+        <script src="{% static 'assets/js/alpine-persist.min.js' %}"></script>
+        <script defer src="{% static 'assets/js/alpine-ui.min.js' %}"></script>
+        <script defer src="{% static 'assets/js/alpine-focus.min.js' %}"></script>
+        <script defer src="{% static 'assets/js/alpine.min.js' %}"></script>
+        <script src="{% static 'assets/js/custom.js' %}"></script>
+        <script src="{% static 'assets/js/simple-datatables.js' %}"></script>
+        <script>
+
+
+            
+        
+
+           
+
+            document.addEventListener('alpine:init', () => {
+                // main section
+                Alpine.data('scrollToTop', () => ({
+                    showTopButton: false,
+                    init() {
+                        window.onscroll = () => {
+                            this.scrollFunction();
+                        };
+                    },
+
+                    scrollFunction() {
+                        if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 50) {
+                            this.showTopButton = true;
+                        } else {
+                            this.showTopButton = false;
+                        }
+                    },
+
+                    goToTop() {
+                        document.body.scrollTop = 0;
+                        document.documentElement.scrollTop = 0;
+                    },
+                }));
+
+                // theme customization
+                Alpine.data('customizer', () => ({
+                    showCustomizer: false,
+                }));
+
+                // sidebar section
+                Alpine.data('sidebar', () => ({
+                    init() {
+                        const selector = document.querySelector('.sidebar ul a[href="' + window.location.pathname + '"]');
+                        if (selector) {
+                            selector.classList.add('active');
+                            const ul = selector.closest('ul.sub-menu');
+                            if (ul) {
+                                let ele = ul.closest('li.menu').querySelectorAll('.nav-link');
+                                if (ele) {
+                                    ele = ele[0];
+                                    setTimeout(() => {
+                                        ele.click();
+                                    });
+                                }
+                            }
+                        }
+                    },
+                }));
+
+                // header section
+                Alpine.data('header', () => ({
+                    init() {
+                        const selector = document.querySelector('ul.horizontal-menu a[href="' + window.location.pathname + '"]');
+                        if (selector) {
+                            selector.classList.add('active');
+                            const ul = selector.closest('ul.sub-menu');
+                            if (ul) {
+                                let ele = ul.closest('li.menu').querySelectorAll('.nav-link');
+                                if (ele) {
+                                    ele = ele[0];
+                                    setTimeout(() => {
+                                        ele.classList.add('active');
+                                    });
+                                }
+                            }
+                        }
+                    },
+                    
+
+                    removeNotification(value) {
+                        this.notifications = this.notifications.filter((d) => d.id !== value);
+                    },
+
+                    removeMessage(value) {
+                        this.messages = this.messages.filter((d) => d.id !== value);
+                    },
+                }));
+        
+            });
+
+            document.addEventListener('click', function(e) {
+                        // Bouton supprimer
+                        const delBtn = e.target.closest('.btn-danger');
+                        if (delBtn && delBtn.dataset.studentId) {
+                            const studentId = delBtn.dataset.studentId;
+                            
+                            deleteStudent(studentId);
+                        }
+
+                        // Bouton view
+                        const viewBtn = e.target.closest('.btn-success');
+                        if (viewBtn && viewBtn.dataset.viewId) {
+                            const studentId = viewBtn.dataset.viewId;
+                            viewDetails(studentId);
+                        }
+                });     
+        </script>
+
+
+        
+            
+    </body>
+</html>
+
+{% endblock %}
